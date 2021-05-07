@@ -1,20 +1,21 @@
-import discord, os, time, random, datetime, asyncio, platform
+import discord, os, time, random, datetime, asyncio, platform, youtube_dl
 from discord.ext import commands
-
-from utils import keep_alive
+from discord.utils import get
+from discord import FFmpegPCMAudio
 
 start_time = time.time()
 
 intents = discord.Intents.default()
 intents.members = True
 
-client = commands.Bot(command_prefix =["nf!", "NF!", "Nf!", "nF!", "nf! ", "NF! ", "Nf! ", "nF! "], case_insensitive=True, intents=intents)
-token = os.environ['TOKEN']
+client = commands.Bot(command_prefix =["nf!", "NF!", "Nf!", "nF!", "!"], case_insensitive=True, intents=intents)
+TOKEN = ''
 client.remove_command('help')
 
 for filename in os.listdir('./cogs'):
   if filename.endswith('.py'):
     client.load_extension(f'cogs.{filename[:-3]}')
+    print(f"Loaded cog.{filename[:-3]}")
 
 @client.event
 async def on_ready():
@@ -24,12 +25,25 @@ async def on_ready():
   embed = discord.Embed(description=f"{client.user.name} has booted on {time.ctime()}.",color=discord.Color.green())
   await channel.send(embed=embed)
 
+  voice = client.get_channel(830314719356387359)
+  songsource = random.choice(os.listdir("/root/nf%20songs"))
+  source = FFmpegPCMAudio(songsource)
+  await voice.connect()
+  player = voice.play(source)
+
 async def ch_pr():
   await client.wait_until_ready()
 
-  statuses = ["Chasing | nf!help", "DM for ModMail | nf!help"]
+  fo = open("utils/lists/songs.txt", "r")
+  song = fo.readlines()
+
+  statuses = [f"{random.choice(song)} | nf!help", "nf.lnk.to/clouds"]
 
   while not client.is_closed():
+
+    fo = open("utils/lists/songs.txt", "r")
+    song = fo.readlines()
+    statuses = [f"{random.choice(song)} | nf!help", "nf.lnk.to/clouds"]
 
     status = random.choice(statuses)
     await client.change_presence(activity=discord.Game(name=status))
@@ -63,5 +77,4 @@ async def uptime(ctx):
     embed = discord.Embed(color=discord.Color.green(), description=text)
     await ctx.send(embed=embed)
 
-keep_alive.keep_alive()
-client.run(token, bot=True, reconnect=True)
+client.run(TOKEN, bot=True, reconnect=True)
